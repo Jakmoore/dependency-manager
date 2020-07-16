@@ -7,8 +7,8 @@ def main():
     repo = getRepo(localRepo)
     filesInRepo = getFilesInRepo(localRepo)
 
-    for a in filesInRepo:
-        with open(localRepo + "/" + a, "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
+    for a in filesInRepo: 
+        with open(f"{localRepo}/{a}", "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
             textGradleFile.write(gradleFile.read())
             scanFile("text_gradle_file.txt")
             gradleFile.close()
@@ -20,7 +20,7 @@ def main():
 def getRepo(localRepo):
     repoUrl = "https://github.com/Jakmoore/dev-gradle-repo"
     repo = git.Repo.clone_from(repoUrl, localRepo, progress=None, env=None)
-    print("Cloned repo contents: " + str(os.listdir(localRepo)))
+    print(f"Cloned repo contents: {str(os.listdir(localRepo))}")
     return repo
 
 def getFilesInRepo(localRepo):
@@ -34,8 +34,8 @@ def getFilesInRepo(localRepo):
     return gradleFiles
 
 def scanFile(gradleFile):
+    print(f"Scanning file {gradleFile}")
     textGradleFile = open(gradleFile, "rb")
-    print(textGradleFile.read())
 
 def removeRepo(localRepo):
     print("Removing cloned repo.")
