@@ -6,7 +6,6 @@ def main():
     localRepo = "gradle_repo"
     repo = getRepo(localRepo)
     filesInRepo = getFilesInRepo(localRepo)
-    print(filesInRepo)
 
     for a in filesInRepo:
         with open(localRepo + "/" + a, "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
