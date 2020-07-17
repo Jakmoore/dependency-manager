@@ -8,11 +8,11 @@ def main():
     filesInRepo = getFilesInRepo(localRepo)
 
     for a in filesInRepo: 
-        with open(f"{localRepo}/{a}", "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
+       with open(f"{localRepo}/{a}", "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
             textGradleFile.write(gradleFile.read())
-            scanFile("text_gradle_file.txt")
             gradleFile.close()
-            textGradleFile.close()
+            textGradleFile.close()       
+            scanFile("text_gradle_file.txt")
             os.remove("text_gradle_file.txt")
 
     removeRepo(localRepo)
@@ -36,6 +36,7 @@ def getFilesInRepo(localRepo):
 def scanFile(gradleFile):
     print(f"Scanning file {gradleFile}")
     textGradleFile = open(gradleFile, "rb")
+    print("Contents of text gradle file:" + str(textGradleFile.read()))
 
 def removeRepo(localRepo):
     print("Removing cloned repo.")
