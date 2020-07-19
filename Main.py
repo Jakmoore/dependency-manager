@@ -1,21 +1,30 @@
 import os
 import shutil
+import re
 import git
+import Dependency
 
 def main():
     localRepo = "gradle_repo"
     repo = getRepo(localRepo)
     filesInRepo = getFilesInRepo(localRepo)
 
-    for a in filesInRepo: 
-       with open(f"{localRepo}/{a}", "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
+    try:
+        for a in filesInRepo: 
+         with open(f"{localRepo}/{a}", "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
             textGradleFile.write(gradleFile.read())
             gradleFile.close()
             textGradleFile.close()       
-            scanFile("text_gradle_file.txt")
-            os.remove("text_gradle_file.txt")
+            scanFile()
+            os.remove("text_gradle_file.txt") 
+    except Exception as e:
+        os.remove("text_gradle_file.txt") 
+        removeRepo(localRepo)
+        print(f"Error: {e}")
 
-    removeRepo(localRepo)
+    finally:
+        if os.path.isdir(localRepo):
+            removeRepo(localRepo)
 
 def getRepo(localRepo):
     repoUrl = "https://github.com/Jakmoore/dev-gradle-repo"
@@ -33,10 +42,18 @@ def getFilesInRepo(localRepo):
 
     return gradleFiles
 
-def scanFile(gradleFile):
-    print(f"Scanning file {gradleFile}")
-    textGradleFile = open(gradleFile, "rb")
-    print("Contents of text gradle file:" + str(textGradleFile.read()))
+def scanFile():
+    print(f"Scanning file.")
+    with open("text_gradle_file.txt") as textGradleFile:
+       lines = textGradleFile.readlines()
+       print("HERE")
+
+       for line in lines:
+           extractedElements = re.findall(r"'([^']+)'", line)
+           dependency = Dependency(extractedElements[0], extractedElements[1], extractedElements[2])
+
+           print(f"Group: {dependency.group}, name: {dependency.name}, version: {dependency.version}")
+           
 
 def removeRepo(localRepo):
     print("Removing cloned repo.")
