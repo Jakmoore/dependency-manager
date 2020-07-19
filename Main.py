@@ -46,13 +46,24 @@ def scanFile():
     print(f"Scanning file.")
     with open("text_gradle_file.txt") as textGradleFile:
        lines = textGradleFile.readlines()
+       dependencies = []
+       newVersions = getNewVersions()
 
        for line in lines:
            extractedElements = re.findall(r"'([^']+)'", line)
-           dependency = Dependency(extractedElements[0], extractedElements[1], extractedElements[2])
 
-           print(f"Group: {dependency.group}, name: {dependency.name}, version: {dependency.version}")
-           
+           if len(extractedElements) > 0:
+             dependency = Dependency(extractedElements[0], extractedElements[1], extractedElements[2])
+             dependencies.append(dependency)
+             print(dependency.toString())
+
+       for dependency in dependencies:
+           for newVersion in newVersions:
+               print(dependency.name)
+
+def getNewVersions():
+    data = [['commons-io', 'commons-io', '2.8'], ['org.springframework.boot', 'spring-boot-starter-web', '2.3.1.RELEASE']]
+    print("Retrieving data source.")
 
 def removeRepo(localRepo):
     print("Removing cloned repo.")
