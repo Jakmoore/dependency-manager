@@ -2,7 +2,7 @@ import os
 import shutil
 import re
 import git
-import Dependency
+from Dependency import Dependency
 
 def main():
     localRepo = "gradle_repo"
@@ -46,7 +46,6 @@ def scanFile():
     print(f"Scanning file.")
     with open("text_gradle_file.txt") as textGradleFile:
        lines = textGradleFile.readlines()
-       print("HERE")
 
        for line in lines:
            extractedElements = re.findall(r"'([^']+)'", line)
