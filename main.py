@@ -2,72 +2,72 @@ import os
 import shutil
 import re
 import git
-from Dependency import Dependency
+from dependency import Dependency
+
+local_repo = "gradle_repo"
 
 def main():
-    localRepo = "gradle_repo"
-    repo = getRepo(localRepo)
-    filesInRepo = getFilesInRepo(localRepo)
+    repo = get_repo()
+    files_in_repo = get_files_in_repo()
 
     try:
-        for a in filesInRepo: 
-         with open(f"{localRepo}/{a}", "rb") as gradleFile, open("text_gradle_file.txt", "wb") as textGradleFile:
-            textGradleFile.write(gradleFile.read())
-            gradleFile.close()
-            textGradleFile.close()       
-            scanFile()
+        for a in files_in_repo: 
+         with open(f"{local_repo}/{a}", "rb") as gradle_file, open("text_gradle_file.txt", "wb") as text_gradle_file:
+            text_gradle_file.write(gradle_file.read())
+            gradle_file.close()
+            text_gradle_file.close()       
+            scan_file()
             os.remove("text_gradle_file.txt") 
     except Exception as e:
-        os.remove("text_gradle_file.txt") 
-        removeRepo(localRepo)
+       # os.remove("text_gradle_file.txt") 
+        remove_repo()
         print(f"Error: {e}")
 
     finally:
-        if os.path.isdir(localRepo):
-            removeRepo(localRepo)
+        if os.path.isdir(local_repo):
+            remove_repo()
 
-def getRepo(localRepo):
-    repoUrl = "https://github.com/Jakmoore/dev-gradle-repo"
-    repo = git.Repo.clone_from(repoUrl, localRepo, progress=None, env=None)
-    print(f"Cloned repo contents: {str(os.listdir(localRepo))}")
-    return repo
+def get_repo():
+    repo_url = "https://github.com/Jakmoore/dev-gradle-repo"
+    return  git.Repo.clone_from(repo_url, local_repo, progress=None, env=None)
 
-def getFilesInRepo(localRepo):
-    files = os.listdir(localRepo)
-    gradleFiles = []
+def get_files_in_repo():
+    files = os.listdir(local_repo)
+    gradle_files = []
 
     for a in files:
         if ".gradle" in a:
-            gradleFiles.append(a)
+            gradle_files.append(a)
 
-    return gradleFiles
+    return gradle_files
 
-def scanFile():
+def scan_file():
     print(f"Scanning file.")
-    with open("text_gradle_file.txt") as textGradleFile:
-       lines = textGradleFile.readlines()
+    with open("text_gradle_file.txt") as text_gradle_file:
+       lines = text_gradle_file.readlines()
        dependencies = []
-       newVersions = getNewVersions()
+       new_versions = get_new_versions()
 
        for line in lines:
-           extractedElements = re.findall(r"'([^']+)'", line)
+           extracted_elements = re.findall(r"'([^']+)'", line)
 
-           if len(extractedElements) > 0:
-             dependency = Dependency(extractedElements[0], extractedElements[1], extractedElements[2])
+           if len(extracted_elements) > 0:
+             dependency = Dependency(extracted_elements[0], extracted_elements[1], extracted_elements[2])
              dependencies.append(dependency)
              print(dependency.toString())
 
        for dependency in dependencies:
-           for newVersion in newVersions:
+           for new_version in new_versions:
                print(dependency.name)
 
-def getNewVersions():
+def get_new_versions():
     data = [['commons-io', 'commons-io', '2.8'], ['org.springframework.boot', 'spring-boot-starter-web', '2.3.1.RELEASE']]
     print("Retrieving data source.")
+    return data
 
-def removeRepo(localRepo):
+def remove_repo():
     print("Removing cloned repo.")
-    shutil.rmtree(localRepo)
+    shutil.rmtree(local_repo)
 
 if __name__ == "__main__":
     main()
