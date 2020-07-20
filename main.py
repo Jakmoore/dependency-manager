@@ -19,7 +19,9 @@ def main():
             scan_file()
             os.remove("text_gradle_file.txt") 
     except Exception as e:
-       # os.remove("text_gradle_file.txt") 
+        if os.path.isfile("text_gradle_file.txt"):
+            os.remove("text_gradle_file.txt") 
+       
         remove_repo()
         print(f"Error: {e}")
 
@@ -54,16 +56,22 @@ def scan_file():
            if len(extracted_elements) > 0:
              dependency = Dependency(extracted_elements[0], extracted_elements[1], extracted_elements[2])
              dependencies.append(dependency)
-             print(dependency.toString())
-
-       for dependency in dependencies:
-           for new_version in new_versions:
-               print(dependency.name)
+        
+       for current_dependency in dependencies:
+            for new_version in new_versions:
+                if current_dependency.name == new_version.name and current_dependency.group == new_version.group:
+                    print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_version.version}")
+                    current_dependency.version = new_version.version
 
 def get_new_versions():
-    data = [['commons-io', 'commons-io', '2.8'], ['org.springframework.boot', 'spring-boot-starter-web', '2.3.1.RELEASE']]
+    data = [['commons-io', 'commons-io', '2.8'], ['org.springframework.boot', 'spring-boot-starter-web', '2.3.3.RELEASE']]
     print("Retrieving data source.")
-    return data
+    new_versions = []
+
+    for element in data:
+        new_versions.append(Dependency(element[0], element[1], element[2]))
+
+    return new_versions
 
 def remove_repo():
     print("Removing cloned repo.")
