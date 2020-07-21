@@ -21,10 +21,9 @@ def main():
     except Exception as e:
         if os.path.isfile("text_gradle_file.txt"):
             os.remove("text_gradle_file.txt") 
-       
+    
         remove_repo()
         print(f"Error: {e}")
-
     finally:
         if os.path.isdir(local_repo):
             remove_repo()
