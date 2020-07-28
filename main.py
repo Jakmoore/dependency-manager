@@ -1,15 +1,13 @@
 import os
 import shutil
 import re
-import git
 import traceback
-from pathlib import Path
 from dependency import Dependency
 
-LOCAL_REPO = "gradle_repo"
+LOCAL_REPO = "dev-gradle-repo"
 
 def main():
-    repo = get_remote_repo()
+    os.system("git clone https://github.com/Jakmoore/dev-gradle-repo.git")
     files_in_repo = get_files_in_repo()
 
     try:
@@ -18,23 +16,21 @@ def main():
             gradle_file.close()
             text_gradle_file.close()       
             scan_file()
-            push_updated_gradle_file(repo)
+            push_updated_gradle_file()
+            os.chdir("/Users/jak/Documents/VS Code Projects/DependencyManager/")
             os.remove("text_gradle_file.txt") 
-            os.remove("updated_gradle_file.txt")
     except Exception as e:
         if os.path.isfile("text_gradle_file.txt"):
             os.remove("text_gradle_file.txt") 
-            os.remove("updated_gradle_file.txt")
+        
+        if os.path.isfile("updated_gradle_file.gradle"):
+            os.remove("updated_gradle_file.gradle")
 
         remove_repo()
         traceback.print_exc()
     finally:
         if os.path.isdir(LOCAL_REPO):
             remove_repo()
-
-def get_remote_repo():
-    repo_url = "https://github.com/Jakmoore/dev-gradle-repo"
-    return  git.Repo.clone_from(repo_url, LOCAL_REPO, progress=None, env=None)
 
 def get_files_in_repo():
     files = os.listdir(LOCAL_REPO)
@@ -47,7 +43,6 @@ def get_files_in_repo():
     return gradle_files
 
 def scan_file():
-    print(f"Scanning file.")
     with open("text_gradle_file.txt") as text_gradle_file:
        lines = text_gradle_file.readlines()
        dependencies = []
@@ -75,7 +70,6 @@ def apply_new_versions(new_versions):
     
 def get_new_versions():
     data = [['commons-io', 'commons-io', '2.8'], ['org.springframework.boot', 'spring-boot-starter-web', '2.3.3.RELEASE']]
-    print("Retrieving data source.")
     new_versions = []
 
     for element in data:
@@ -83,15 +77,14 @@ def get_new_versions():
 
     return new_versions
 
-def push_updated_gradle_file(repo: git.Repo):
-    index = repo.index
-    path = Path("updated_gradle_file.txt")
-    path.rename(path.with_suffix(".gradle"))
-    index.remove("test_gradle.gradle")
-    index.add(["updated_gradle_file.gradle"])
-    index.commit("Updated gradle dependencies.")
-    origin = repo.remote()
-    origin.push("master")
+def push_updated_gradle_file():
+    os.rename("updated_gradle_file.txt", "test_gradle.gradle")
+    os.chdir(LOCAL_REPO)
+    os.system("git rm test_gradle.gradle")
+    os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/DependencyManager/test_gradle.gradle /Users/jak/Documents/VS\ Code\ Projects/DependencyManager/{LOCAL_REPO}/")
+    os.system("git add test_gradle.gradle")
+    os.system("git commit -m 'Updated gradle file'")
+    os.system("git push")
 
 def remove_repo():
     print("Removing cloned repo.")
