@@ -58,18 +58,19 @@ def scan_file():
        for current_dependency in dependencies:
             for new_version in new_versions:
                 if current_dependency.name == new_version.name and current_dependency.group == new_version.group:
-                    print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_version.version}")
-                    current_dependency.version = new_version.version
+                    if not current_dependency.version == new_version.version:
+                     print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_version.version}")
+                     current_dependency.version = new_version.version
 
        apply_new_versions(dependencies)
 
 def apply_new_versions(new_versions):
     with open("updated_gradle_file.txt", "w") as updated_gradle_file:
-        for dep in new_versions:
+        for dep in new_versions:                                
             updated_gradle_file.write(f"{dep.toString()} \n")
     
 def get_new_versions():
-    data = [['commons-io', 'commons-io', '2.8'], ['org.springframework.boot', 'spring-boot-starter-web', '2.3.3.RELEASE']]
+    data = [['commons-io', 'commons-io', '2.2'], ['org.springframework.boot', 'spring-boot-starter-web', '2.2.3.RELEASE']]
     new_versions = []
 
     for element in data:
