@@ -77,7 +77,7 @@ def get_new_versions():
        rows = csv.reader(f)
 
        for row in rows:
-           new_versions.append(Dependency(row[0], row[1], row[2]))
+           new_versions.append(Dependency(row[0].strip('"\''), row[1].strip('"\''), row[2].strip('"\'')))
 
     return new_versions
 
