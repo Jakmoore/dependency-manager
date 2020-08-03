@@ -2,6 +2,7 @@ import os
 import shutil
 import re
 import traceback
+import csv
 from dependency import Dependency
 
 LOCAL_REPO = "dev-gradle-repo"
@@ -68,13 +69,15 @@ def apply_new_versions(new_versions):
     with open("updated_gradle_file.txt", "w") as updated_gradle_file:
         for dep in new_versions:                                
             updated_gradle_file.write(f"{dep.toString()} \n")
-    
+         
 def get_new_versions():
-    data = [['commons-io', 'commons-io', '2.2'], ['org.springframework.boot', 'spring-boot-starter-web', '2.2.3.RELEASE']]
     new_versions = []
 
-    for element in data:
-        new_versions.append(Dependency(element[0], element[1], element[2]))
+    with open("dev_gradle_csv.csv") as f:
+       rows = csv.reader(f)
+
+       for row in rows:
+           new_versions.append(Dependency(row[0], row[1], row[2]))
 
     return new_versions
 
