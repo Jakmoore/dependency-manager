@@ -50,11 +50,12 @@ def scan_file():
        new_versions = get_new_versions()
 
        for line in lines:
-           extracted_elements = re.findall(r"'([^']+)'", line)
+           if "compile" in line:
+            extracted_elements = re.findall(r"'([^']+)'", line)
 
-           if len(extracted_elements) > 0:
-             dependency = Dependency(extracted_elements[0], extracted_elements[1], extracted_elements[2])
-             dependencies.append(dependency)
+            if len(extracted_elements) > 0:
+                dependency = Dependency(extracted_elements[0], extracted_elements[1], extracted_elements[2])
+                dependencies.append(dependency)
         
        for current_dependency in dependencies:
             for new_version in new_versions:
@@ -66,9 +67,17 @@ def scan_file():
        apply_new_versions(dependencies)
 
 def apply_new_versions(new_versions):
+    dependencies = ""
+
+    for dep in new_versions:
+        dependencies += dep.toString() + "\n"
+    
+    print(dependencies)
+
+    gradle_template = "ext { springBoot = '2.1.5.RELEASE' activeMQVersion = '5.15.11' camelVersion = '2.23.4' log4jVersion = '2.13.2' } dependencies {%s}" % dependencies
+
     with open("updated_gradle_file.txt", "w") as updated_gradle_file:
-        for dep in new_versions:                                
-            updated_gradle_file.write(f"{dep.toString()} \n")
+        updated_gradle_file.write(gradle_template)
          
 def get_new_versions():
     new_versions = []
