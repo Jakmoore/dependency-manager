@@ -71,9 +71,7 @@ def apply_new_versions(new_versions):
 
     for dep in new_versions:
         dependencies += dep.toString() + "\n"
-    
-    print(dependencies)
-
+        
     gradle_template = "ext { springBoot = '2.1.5.RELEASE' activeMQVersion = '5.15.11' camelVersion = '2.23.4' log4jVersion = '2.13.2' } dependencies {%s}" % dependencies
 
     with open("updated_gradle_file.txt", "w") as updated_gradle_file:
