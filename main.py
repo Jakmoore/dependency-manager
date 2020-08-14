@@ -8,7 +8,8 @@ from dependency import Dependency
 LOCAL_REPO = "dev-gradle-repo"
 
 def main():
-    os.system("git clone https://github.com/Jakmoore/dev-gradle-repo.git")
+    remote_repo = os.getenv("REMOTE_REPO", "https://github.com/Jakmoore/dev-gradle-repo.git")
+    os.system(f"git clone {remote_repo}")
     files_in_repo = get_files_in_repo()
 
     try:
@@ -18,7 +19,7 @@ def main():
             text_gradle_file.close()       
             scan_file()
             push_updated_gradle_file()
-            os.chdir("/Users/jak/Documents/VS Code Projects/DependencyManager/")
+            os.chdir("/Users/jak/Documents/VS Code Projects/DependencyManager/") # Change to server directory
             os.remove("text_gradle_file.txt") 
     except Exception as e:
         if os.path.isfile("text_gradle_file.txt"):
@@ -92,6 +93,7 @@ def push_updated_gradle_file():
     os.rename("updated_gradle_file.txt", "test_gradle.gradle")
     os.chdir(LOCAL_REPO)
     os.system("git rm test_gradle.gradle")
+    # Change to server directory
     os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/DependencyManager/test_gradle.gradle /Users/jak/Documents/VS\ Code\ Projects/DependencyManager/{LOCAL_REPO}/")
     os.system("git add test_gradle.gradle")
     os.system("git commit -m 'Updated gradle file'")
