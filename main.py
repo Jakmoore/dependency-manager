@@ -81,7 +81,7 @@ def get_new_versions():
         return new_versions 
     
     else:
-        print("error in get new versions")
+        raise Exception(f"Error, HTTP status code: {response.status_code}")
 
 def push_updated_gradle_file():
     os.rename("updated_gradle_file.txt", "test_gradle.gradle")
