@@ -1,0 +1,5 @@
+ext { springBoot = '2.1.5.RELEASE' activeMQVersion = '5.15.11' camelVersion = '2.23.4' log4jVersion = '2.13.2' 
+} dependencies { 
+compile group: 'spring-boot-starter-web', name: 'org.springframework.boot', version: '2.3.4.RELEASE'
+compile group: 'commons-io', name: 'commons-io', version: '2.9'
+}
