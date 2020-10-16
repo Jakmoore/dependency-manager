@@ -2,7 +2,8 @@ import os
 import shutil
 import re
 import traceback
-import csv
+import requests
+import json
 from dependency import Dependency
 
 LOCAL_REPO = "dev-gradle-repo"
@@ -10,7 +11,6 @@ LOCAL_REPO = "dev-gradle-repo"
 def main():
     remote_repo = os.getenv("REMOTE_REPO", "https://github.com/Jakmoore/dev-gradle-repo.git")
     os.system(f"git clone {remote_repo}")
-    files_in_repo = get_files_in_repo()
 
     try:
         with open(f"{LOCAL_REPO}/test_gradle.gradle", "rb") as gradle_file, open("text_gradle_file.txt", "wb") as text_gradle_file:
@@ -19,7 +19,7 @@ def main():
             text_gradle_file.close()       
             scan_file()
             push_updated_gradle_file()
-            os.chdir("/Users/jak/Documents/VS Code Projects/DependencyManager/") # Change to server directory
+            os.chdir("/Users/jak/Documents/VS Code Projects/dependency-manager/") # Change to server directory
             os.remove("text_gradle_file.txt") 
     except Exception as e:
         if os.path.isfile("text_gradle_file.txt"):
@@ -33,16 +33,6 @@ def main():
     finally:
         if os.path.isdir(LOCAL_REPO):
             remove_repo()
-
-def get_files_in_repo():
-    files = os.listdir(LOCAL_REPO)
-    gradle_files = []
-
-    for a in files:
-        if ".gradle" in a:
-            gradle_files.append(a)
-
-    return gradle_files
 
 def scan_file():
     with open("text_gradle_file.txt") as text_gradle_file:
@@ -73,28 +63,32 @@ def apply_new_versions(new_versions):
     for dep in new_versions:
         dependencies += dep.toString() + "\n"
         
-    gradle_template = "ext { springBoot = '2.1.5.RELEASE' activeMQVersion = '5.15.11' camelVersion = '2.23.4' log4jVersion = '2.13.2' } dependencies {%s}" % dependencies
+    gradle_template = "ext { springBoot = '2.1.5.RELEASE' activeMQVersion = '5.15.11' camelVersion = '2.23.4' log4jVersion = '2.13.2' } \n dependencies {%s}" % dependencies 
 
     with open("updated_gradle_file.txt", "w") as updated_gradle_file:
         updated_gradle_file.write(gradle_template)
          
 def get_new_versions():
-    new_versions = []
+    vulnerabilities_url = os.getenv("VULNERABILITIES_ENDPOINT", "http://localhost:5000/vulnerabilities")
+    response = requests.get(vulnerabilities_url)
 
-    with open("dev_gradle_csv.csv") as f:
-       rows = csv.reader(f)
+    if response.status_code == 200:
+        response_content = json.loads(response.content.decode("UTF-8"))
+        new_versions = []
 
-       for row in rows:
-           new_versions.append(Dependency(row[0].strip('"\''), row[1].strip('"\''), row[2].strip('"\'')))
-
-    return new_versions
+        for dep in response_content["vulnerabilities"]:
+            new_versions.append(Dependency(dep.get("group"), dep.get("name"), dep.get("version")))  
+        
+        return new_versions 
+    
+    else:
+        raise Exception(f"Error, HTTP status code: {response.status_code}")
 
 def push_updated_gradle_file():
     os.rename("updated_gradle_file.txt", "test_gradle.gradle")
     os.chdir(LOCAL_REPO)
     os.system("git rm test_gradle.gradle")
-    # Change to server directory
-    os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/DependencyManager/test_gradle.gradle /Users/jak/Documents/VS\ Code\ Projects/DependencyManager/{LOCAL_REPO}/")
+    os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/test_gradle.gradle /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/{LOCAL_REPO}/") # Change to server directory
     os.system("git add test_gradle.gradle")
     os.system("git commit -m 'Updated gradle file'")
     os.system("git push")
