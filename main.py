@@ -11,28 +11,43 @@ LOCAL_REPO = "dev-gradle-repo"
 def main():
     remote_repo = os.getenv("REMOTE_REPO", "https://github.com/Jakmoore/dev-gradle-repo.git")
     os.system(f"git clone {remote_repo}")
+    files_in_repo = get_files_in_repo()
+     
+    for file in files_in_repo:
+        try:
+            with open(f"{LOCAL_REPO}/{file}", "rb") as gradle_file, open("text_gradle_file.txt", "wb") as text_gradle_file:
+                text_gradle_file.write(gradle_file.read())
+                gradle_file.close()
+                text_gradle_file.close()       
+                scan_file()
+                push_updated_gradle_file()
+                os.chdir("/Users/jak/Documents/VS Code Projects/dependency-manager/") # Change to server directory
+                os.remove("text_gradle_file.txt") 
+        except Exception as e:
+            if os.path.isfile("text_gradle_file.txt"):
+                os.remove("text_gradle_file.txt") 
+            
+            if os.path.isfile("updated_gradle_file.gradle"):
+                os.remove("updated_gradle_file.gradle")
 
-    try:
-        with open(f"{LOCAL_REPO}/test_gradle.gradle", "rb") as gradle_file, open("text_gradle_file.txt", "wb") as text_gradle_file:
-            text_gradle_file.write(gradle_file.read())
-            gradle_file.close()
-            text_gradle_file.close()       
-            scan_file()
-            push_updated_gradle_file()
-            os.chdir("/Users/jak/Documents/VS Code Projects/dependency-manager/") # Change to server directory
-            os.remove("text_gradle_file.txt") 
-    except Exception as e:
-        if os.path.isfile("text_gradle_file.txt"):
-            os.remove("text_gradle_file.txt") 
-        
-        if os.path.isfile("updated_gradle_file.gradle"):
-            os.remove("updated_gradle_file.gradle")
+            remove_repo() # Now we are loopoing files this will thow an error
+            traceback.print_exc()
+        """ finally:
+            if os.path.isdir(LOCAL_REPO):
+                remove_repo() # Now we are loopoing files this will thow an error """
 
-        remove_repo()
-        traceback.print_exc()
-    finally:
-        if os.path.isdir(LOCAL_REPO):
-            remove_repo()
+    remove_repo()
+
+def get_files_in_repo():
+    files = []
+
+    for file in os.listdir(LOCAL_REPO):
+        if ".gradle" in file:
+            files.append(file)
+    
+    print(f"Files in repo: {files}")
+    
+    return files
 
 def scan_file():
     with open("text_gradle_file.txt") as text_gradle_file:
