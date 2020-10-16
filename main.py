@@ -69,7 +69,8 @@ def apply_new_versions(new_versions):
         updated_gradle_file.write(gradle_template)
          
 def get_new_versions():
-    response = requests.get("http://localhost:5000/vulnerabilities")
+    vulnerabilities_url = os.getenv("VULNERABILITIES_ENDPOINT", "http://localhost:5000/vulnerabilities")
+    response = requests.get(vulnerabilities_url)
 
     if response.status_code == 200:
         response_content = json.loads(response.content.decode("UTF-8"))
