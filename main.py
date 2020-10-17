@@ -4,38 +4,55 @@ import re
 import traceback
 import requests
 import json
+from os import path
 from dependency import Dependency
 
 LOCAL_REPO = "dev-gradle-repo"
+ORGINAL_DIR = os.getcwd()
 
 def main():
     remote_repo = os.getenv("REMOTE_REPO", "https://github.com/Jakmoore/dev-gradle-repo.git")
     os.system(f"git clone {remote_repo}")
+    files_in_repo = get_files_in_repo()
+    error_occurred = False
 
-    try:
-        with open(f"{LOCAL_REPO}/test_gradle.gradle", "rb") as gradle_file, open("text_gradle_file.txt", "wb") as text_gradle_file:
-            text_gradle_file.write(gradle_file.read())
-            gradle_file.close()
-            text_gradle_file.close()       
-            scan_file()
-            push_updated_gradle_file()
-            os.chdir("/Users/jak/Documents/VS Code Projects/dependency-manager/") # Change to server directory
-            os.remove("text_gradle_file.txt") 
-    except Exception as e:
-        if os.path.isfile("text_gradle_file.txt"):
-            os.remove("text_gradle_file.txt") 
-        
-        if os.path.isfile("updated_gradle_file.gradle"):
-            os.remove("updated_gradle_file.gradle")
+    for x in files_in_repo:
+        file = os.path.splitext(f"{x}")[0]
 
-        remove_repo()
-        traceback.print_exc()
-    finally:
-        if os.path.isdir(LOCAL_REPO):
-            remove_repo()
+        try:
+            with open(f"{LOCAL_REPO}/{x}", "rb") as gradle_file, open(f"{file}.txt", "wb") as text_gradle_file:
+                text_gradle_file.write(gradle_file.read())
+                gradle_file.close()
+                text_gradle_file.close()       
+                scan_file(file)
+                add_file_to_git(file)
+                os.chdir("/Users/jak/Documents/VS Code Projects/dependency-manager/") # Change to server directory
+        except Exception as e:
+            error_occurred = True
+            if os.path.isfile(f"{file}.txt"):
+                os.remove(f"{file}.txt") 
 
-def scan_file():
-    with open("text_gradle_file.txt") as text_gradle_file:
+            traceback.print_exc()
+
+    if not error_occurred: 
+     push_updated_gradle_files()
+    
+    remove_repo()
+
+def get_files_in_repo():
+    files = []
+
+    for file in os.listdir(LOCAL_REPO):
+        if ".gradle" in file:
+            files.append(file)
+    
+    print(f"Files in repo: {files}")
+    
+    return files
+
+def scan_file(file):
+
+    with open(f"{file}.txt") as text_gradle_file:
        lines = text_gradle_file.readlines()
        dependencies = []
        new_versions = get_new_versions()
@@ -55,9 +72,9 @@ def scan_file():
                      print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_version.version}")
                      current_dependency.version = new_version.version
 
-       apply_new_versions(dependencies)
+       apply_new_versions(dependencies, file)
 
-def apply_new_versions(new_versions):
+def apply_new_versions(new_versions, file):
     dependencies = ""
 
     for dep in new_versions:
@@ -65,7 +82,7 @@ def apply_new_versions(new_versions):
         
     gradle_template = "ext { springBoot = '2.1.5.RELEASE' activeMQVersion = '5.15.11' camelVersion = '2.23.4' log4jVersion = '2.13.2' } \n dependencies {%s}" % dependencies 
 
-    with open("updated_gradle_file.txt", "w") as updated_gradle_file:
+    with open(f"{file}.txt", "w") as updated_gradle_file:
         updated_gradle_file.write(gradle_template)
          
 def get_new_versions():
@@ -84,18 +101,26 @@ def get_new_versions():
     else:
         raise Exception(f"Error, HTTP status code: {response.status_code}")
 
-def push_updated_gradle_file():
-    os.rename("updated_gradle_file.txt", "test_gradle.gradle")
+
+# Need to add file to get and change name to .gradle
+def add_file_to_git(file):
+    os.rename(f"{file}.txt", f"{file}.gradle")
     os.chdir(LOCAL_REPO)
-    os.system("git rm test_gradle.gradle")
-    os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/test_gradle.gradle /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/{LOCAL_REPO}/") # Change to server directory
-    os.system("git add test_gradle.gradle")
-    os.system("git commit -m 'Updated gradle file'")
-    os.system("git push")
+    os.system(f"git rm {file}.gradle")
+    os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/{file}.gradle /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/{LOCAL_REPO}/") # Change to server directory
+    os.system(f"git add {file}.gradle")
+
+def push_updated_gradle_files():
+   os.chdir(LOCAL_REPO)
+   os.system("git commit -m 'Updated gradle files'")
+   os.system("git push")
 
 def remove_repo():
-    print("Removing cloned repo.")
-    shutil.rmtree(LOCAL_REPO)
+    os.chdir(ORGINAL_DIR)
+    
+    if path.isdir(LOCAL_REPO):
+        print("Removing cloned repo.")
+        shutil.rmtree(LOCAL_REPO)
 
 if __name__ == "__main__":
     main()
