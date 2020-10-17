@@ -101,8 +101,6 @@ def get_new_versions():
     else:
         raise Exception(f"Error, HTTP status code: {response.status_code}")
 
-
-# Need to add file to get and change name to .gradle
 def add_file_to_git(file):
     os.rename(f"{file}.txt", f"{file}.gradle")
     os.chdir(LOCAL_REPO)
@@ -119,7 +117,7 @@ def remove_repo():
     os.chdir(ORGINAL_DIR)
     
     if path.isdir(LOCAL_REPO):
-        print("Removing cloned repo.")
+        print(f"Removing cloned repo: '{LOCAL_REPO}'")
         shutil.rmtree(LOCAL_REPO)
 
 if __name__ == "__main__":
