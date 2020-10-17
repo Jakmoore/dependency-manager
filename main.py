@@ -51,7 +51,6 @@ def get_files_in_repo():
     return files
 
 def scan_file(file):
-
     with open(f"{file}.txt") as text_gradle_file:
        lines = text_gradle_file.readlines()
        dependencies = []
@@ -110,6 +109,7 @@ def add_file_to_git(file):
 
 def push_updated_gradle_files():
    os.chdir(LOCAL_REPO)
+   print("Pushing updated files to remote repo.")
    os.system("git commit -m 'Updated gradle files'")
    os.system("git push")
 
@@ -117,7 +117,7 @@ def remove_repo():
     os.chdir(ORGINAL_DIR)
     
     if path.isdir(LOCAL_REPO):
-        print(f"Removing cloned repo: '{LOCAL_REPO}'")
+        print(f"Removing cloned repo: '{LOCAL_REPO}'.")
         shutil.rmtree(LOCAL_REPO)
 
 if __name__ == "__main__":
