@@ -1,10 +1,10 @@
 import os
-from os import path
 import shutil
 import re
 import traceback
 import requests
 import json
+from os import path
 from dependency import Dependency
 
 LOCAL_REPO = "dev-gradle-repo"
