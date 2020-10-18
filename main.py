@@ -7,6 +7,7 @@ import json
 # import csv
 from os import path
 from dependency import Dependency
+from datetime import datetime
 from packaging.version import parse
 
 LOCAL_REPO = "dev-gradle-repo"
@@ -60,6 +61,7 @@ def scan_file(file):
     with open(f"{file}.txt") as text_gradle_file:
        lines = text_gradle_file.readlines()
        dependencies = []
+       changes = []
        new_dependencies = get_new_versions()
 
        for line in lines:
@@ -75,11 +77,21 @@ def scan_file(file):
                 if current_dependency.name == new_dependency.name and current_dependency.group == new_dependency.group:
                     if not current_dependency.version == new_dependency.version:
                         if new_version_is_higher(new_dependency.version, current_dependency.version):
-                         print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_dependency.version}")
-                         current_dependency.version = new_dependency.version
+                            changes.append(build_log_entry(f"{file}.gradle", current_dependency.name, current_dependency.version, new_dependency.version))                            
+                            current_dependency.version = new_dependency.version
 
+       update_change_log(changes)
        apply_new_versions(dependencies, file)
 
+def build_log_entry(file, dependency_name, old_version, new_version):
+    date_time_format = "%d/%m/%Y %H:%M:%S"
+    return f"[{datetime.now().strftime(date_time_format)}] In {file} updated {dependency_name} from version {old_version} to {new_version}"
+
+def update_change_log(changes):
+    with open("change_log.txt", "a") as change_log:
+        for change in changes:
+            change_log.write(f"{change} \n")
+        
 def new_version_is_higher(new_version, current_version):
     new_version_split = new_version.split(".RELEASE")[0]
     current_version_split = current_version.split(".RELEASE")[0]
@@ -96,7 +108,7 @@ def apply_new_versions(new_versions, file):
 
     with open(f"{file}.txt", "w") as updated_gradle_file:
         updated_gradle_file.write(gradle_template)
-         
+
 def get_new_versions():
     vulnerabilities_url = os.getenv("VULNERABILITIES_ENDPOINT", "http://localhost:5000/vulnerabilities")
     response = requests.get(vulnerabilities_url)
@@ -113,6 +125,7 @@ def get_new_versions():
     else:
         raise Exception(f"Error, HTTP status code: {response.status_code}")
 
+# Use if reading data from csv file
 """ ef get_new_versions():
     new_versions = []
 
@@ -124,6 +137,7 @@ def get_new_versions():
 
     return new_versions
  """
+
 def add_file_to_git(file):
     os.rename(f"{file}.txt", f"{file}.gradle")
     os.chdir(LOCAL_REPO)
