@@ -7,6 +7,7 @@ import json
 # import csv
 from os import path
 from dependency import Dependency
+from packaging.version import parse
 
 LOCAL_REPO = "dev-gradle-repo"
 ORGINAL_DIR = os.getcwd()
@@ -59,7 +60,7 @@ def scan_file(file):
     with open(f"{file}.txt") as text_gradle_file:
        lines = text_gradle_file.readlines()
        dependencies = []
-       new_versions = get_new_versions()
+       new_dependencies = get_new_versions()
 
        for line in lines:
            if "compile" in line:
@@ -70,13 +71,20 @@ def scan_file(file):
                 dependencies.append(dependency)
         
        for current_dependency in dependencies:
-            for new_version in new_versions:
-                if current_dependency.name == new_version.name and current_dependency.group == new_version.group:
-                    if not current_dependency.version == new_version.version:
-                     print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_version.version}")
-                     current_dependency.version = new_version.version
+            for new_dependency in new_dependencies:
+                if current_dependency.name == new_dependency.name and current_dependency.group == new_dependency.group:
+                    if not current_dependency.version == new_dependency.version:
+                        if new_version_is_higher(new_dependency.version, current_dependency.version):
+                         print(f"Upgrading {current_dependency.name} from version {current_dependency.version} to version {new_dependency.version}")
+                         current_dependency.version = new_dependency.version
 
        apply_new_versions(dependencies, file)
+
+def new_version_is_higher(new_version, current_version):
+    new_version_split = new_version.split(".RELEASE")[0]
+    current_version_split = current_version.split(".RELEASE")[0]
+    
+    return parse(new_version_split) > parse(current_version_split)
 
 def apply_new_versions(new_versions, file):
     dependencies = ""
