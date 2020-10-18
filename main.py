@@ -4,6 +4,7 @@ import re
 import traceback
 import requests
 import json
+# import csv
 from os import path
 from dependency import Dependency
 
@@ -11,6 +12,9 @@ LOCAL_REPO = "dev-gradle-repo"
 ORGINAL_DIR = os.getcwd()
 
 def main():
+    start_up_logo_file = open("start_up_logo.txt", "r")
+    start_up_content = start_up_logo_file.read()
+    print(start_up_content)
     remote_repo = os.getenv("REMOTE_REPO", "https://github.com/Jakmoore/dev-gradle-repo.git")
     os.system(f"git clone {remote_repo}")
     files_in_repo = get_files_in_repo()
@@ -38,6 +42,7 @@ def main():
      push_updated_gradle_files()
     
     remove_repo()
+    start_up_logo_file.close()
 
 def get_files_in_repo():
     files = []
@@ -100,6 +105,17 @@ def get_new_versions():
     else:
         raise Exception(f"Error, HTTP status code: {response.status_code}")
 
+""" ef get_new_versions():
+    new_versions = []
+
+    with open("dev_gradle_csv.csv") as f:
+       rows = csv.reader(f)
+
+       for row in rows:
+           new_versions.append(Dependency(row[0].strip('"\''), row[1].strip('"\''), row[2].strip('"\'')))
+
+    return new_versions
+ """
 def add_file_to_git(file):
     os.rename(f"{file}.txt", f"{file}.gradle")
     os.chdir(LOCAL_REPO)
