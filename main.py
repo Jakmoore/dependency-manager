@@ -11,7 +11,7 @@ from datetime import datetime
 from packaging.version import parse
 
 LOCAL_REPO = "dev-gradle-repo"
-ORGINAL_DIR = os.getcwd()
+PROJECT_ROOT = os.getcwd()
 
 def main():
     start_up_logo_file = open("start_up_logo.txt", "r")
@@ -32,7 +32,7 @@ def main():
                 text_gradle_file.close()       
                 scan_file(file)
                 add_file_to_git(file)
-                os.chdir("/Users/jak/Documents/VS Code Projects/dependency-manager/") # Change to server directory
+                os.chdir(PROJECT_ROOT) 
         except Exception as e:
             error_occurred = True
             if os.path.isfile(f"{file}.txt"):
@@ -142,7 +142,7 @@ def add_file_to_git(file):
     os.rename(f"{file}.txt", f"{file}.gradle")
     os.chdir(LOCAL_REPO)
     os.system(f"git rm {file}.gradle")
-    os.system(f"mv /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/{file}.gradle /Users/jak/Documents/VS\ Code\ Projects/dependency-manager/{LOCAL_REPO}/") # Change to server directory
+    os.system(f"mv {PROJECT_ROOT}/{file}.gradle {PROJECT_ROOT}/{LOCAL_REPO}/") 
     os.system(f"git add {file}.gradle")
 
 def push_updated_gradle_files():
@@ -152,7 +152,7 @@ def push_updated_gradle_files():
    os.system("git push")
 
 def remove_repo():
-    os.chdir(ORGINAL_DIR)
+    os.chdir(PROJECT_ROOT)
     
     if path.isdir(LOCAL_REPO):
         print(f"Removing cloned repo: '{LOCAL_REPO}'.")
