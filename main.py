@@ -62,6 +62,7 @@ def scan_file(file):
        lines = text_gradle_file.readlines()
        dependencies = []
        changes = []
+       dependency_dump = []
        new_dependencies = get_new_versions()
 
        for line in lines:
@@ -71,6 +72,7 @@ def scan_file(file):
             if len(extracted_elements) > 0:
                 dependency = Dependency(extracted_elements[0], extracted_elements[1], extracted_elements[2])
                 dependencies.append(dependency)
+                dependency_dump.append(dependency.name)
         
        for current_dependency in dependencies:
             for new_dependency in new_dependencies:
@@ -80,6 +82,7 @@ def scan_file(file):
                             changes.append(build_log_entry(f"{file}.gradle", current_dependency.name, current_dependency.version, new_dependency.version))                            
                             current_dependency.version = new_dependency.version
 
+       update_dependency_dump(file, dependency_dump)
        update_change_log(changes)
        apply_new_versions(dependencies, file)
 
@@ -88,7 +91,7 @@ def build_log_entry(file, dependency_name, old_version, new_version):
     return f"[{datetime.now().strftime(date_time_format)}] In {file} updated {dependency_name} from version {old_version} to {new_version}"
 
 def update_change_log(changes):
-    with open("change_log.txt", "a") as change_log:
+    with open(f"{PROJECT_ROOT}/logs/change_log.txt", "a") as change_log:
         for change in changes:
             change_log.write(f"{change} \n")
         
@@ -121,7 +124,6 @@ def get_new_versions():
             new_versions.append(Dependency(dep.get("group"), dep.get("name"), dep.get("version")))  
         
         return new_versions 
-    
     else:
         raise Exception(f"Error, HTTP status code: {response.status_code}")
 
@@ -138,6 +140,13 @@ def get_new_versions():
     return new_versions
  """
 
+def update_dependency_dump(file, dependency_dump):
+     with open(f"{PROJECT_ROOT}/dependency_dumps/{file}_dump.txt", "a+") as dump_file:
+         for dependency_name in dependency_dump:
+             dump_file.seek(0)
+             if not dependency_name in dump_file.read():
+                 dump_file.write(f"{dependency_name} \n")
+  
 def add_file_to_git(file):
     os.rename(f"{file}.txt", f"{file}.gradle")
     os.chdir(LOCAL_REPO)
